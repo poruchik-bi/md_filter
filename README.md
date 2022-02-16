@@ -12,9 +12,10 @@ On the second stage 'motion_preview' utility allow to check all detections acros
 
 ![Screenshot from 2022-02-16 05-02-38](https://user-images.githubusercontent.com/4415914/154182659-813a2d3c-49df-4bbc-8986-f6443fbaae0f.png)
 
-![Screenshot from 2022-02-16 04-58-21](https://user-images.githubusercontent.com/4415914/154181780-fd1b33a4-d932-4fa2-9076-ec92bca1e284.png)
+![Screenshot from 2022-02-16 05-18-45](https://user-images.githubusercontent.com/4415914/154183954-ce999b7d-4cba-478a-9174-c28a3b112a6a.png)
 
-![Screenshot from 2022-02-16 04-54-53](https://user-images.githubusercontent.com/4415914/154181647-37c1a3fd-396f-4c0c-8bfc-1941554baf7a.png)
+![Screenshot from 2022-02-16 05-19-42](https://user-images.githubusercontent.com/4415914/154184001-3160bc3e-e5e5-430d-a611-9b8b80f93529.png)
+
 
 ### Dependency
 
