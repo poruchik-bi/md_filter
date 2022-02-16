@@ -6,13 +6,8 @@ import argparse
 import logging
 import pandas as pd
 import numpy as np
-import altair as alt
-from altair import datum
+import glob
 
-alt.renderers.enable('mimetype')
-
-
-test_video="/home/er/workspace/md_filter/10.0.6.25_04_20220212124853446.mp4"
 test_roi = [2*845,0,2*110,2*110]
 
 if __name__ == "__main__":
@@ -22,37 +17,48 @@ if __name__ == "__main__":
                         level=LOGLEVEL,
                         datefmt="%Y-%m-%d %H:%M:%S")
 
-    parser = argparse.ArgumentParser(description='ROI motion detection')
-    parser.add_argument("-i", "--in", default = [test_video], dest = 'input', nargs='+', metavar="VIDEO", help="Source videos")
+    parser = argparse.ArgumentParser(description='ROI motion detection', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("-i", "--in", default = '.', dest = 'input', metavar="FOLDER", help="Source video folder")
     parser.add_argument("-o", "--out", default='out', metavar="FOLDER", help='Result folder')
     parser.add_argument("-r", "--roi", default=test_roi, metavar="ROI", help='ROI [x,y,w,h]')
     parser.add_argument("-g", "--gain", default=0.5, type=float, metavar="GAIN", help='Gain (0 .. 1)')
     parser.add_argument("--show", default=False, action='store_true', help='Show video')
+    parser.add_argument("--ext", default = 'mp4', metavar="EXT", help="Video files extension")
 
     args = parser.parse_args()
     
-    os.system(f'mkdir -p {args.out}')
+    if sys.platform == "win32":
+        os.system(f'mkdir {args.out}')
+    else:
+        os.system(f'mkdir -p {args.out}')
 
     alpha = 1 - args.gain
     
-    motion_hist = [0]
     
     fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
 
+    files_list = glob.glob(os.path.join(args.input, f"*.{args.ext}"))
+
     x,y,w,h = args.roi
-    for path in args.input:
+    for path in files_list:
         
+        if not os.path.isfile(path):
+            continue
+
         cap = cv2.VideoCapture(path)
+        if not cap.isOpened():
+            logging.error(f"Can't open file : {path} (Skipped)")    
+            continue
+
         fps = cap.get(cv2.CAP_PROP_FPS)
         
-        diff_path = os.path.join(args.out,os.path.basename(path))
-        # writer = cv2.VideoWriter(diff_path, fourcc, fps, (int(w/2), int(h/2)))
-
         logging.info(f"Video fps: {fps} path: {path}")
 
         ret = True
         frame0 = None
         comm_diff = None 
+        motion_hist = [0]
+
         
         frame_id = 0
         while ret:
@@ -73,7 +79,6 @@ if __name__ == "__main__":
                     diff = cv2.max(cv2.max(b,g),r)
 
                     diff_ad = cv2.adaptiveThreshold(diff, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 31, 7)
-                    # diff[diff < 10] = 0
                     
                     comm_diff = diff if comm_diff is None else (alpha * comm_diff + (1-alpha) * diff).astype(np.uint8)
 
@@ -89,25 +94,25 @@ if __name__ == "__main__":
                 
                     diff_dst = cv2.cvtColor(comm_diff, cv2.COLOR_GRAY2BGR).astype(np.uint8)
 
-                    # writer.write(comm_diff)
                     frame_id += 1
             else:
                 break
 
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            if args.show and (cv2.waitKey(1) & 0xFF == ord('q')):
                 cap.release()
                 break
             
             frame0 = frame
 
         cap.release()
-        # writer.release()
 
         out_csv_path = os.path.join(args.out, f"{os.path.basename(path)}.[{x},{y},{w},{h}].csv")
         df_marks = pd.DataFrame(motion_hist, columns=["motion"])
         df_marks.to_csv(out_csv_path)
 
         logging.info(f"Finished ... {out_csv_path}")
+
+    logging.info(f"End ... ")
 
         
 

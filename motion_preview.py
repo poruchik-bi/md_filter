@@ -52,69 +52,71 @@ def create_bar(w, h, df):
 
     return motion_bar_img
 
-parser = argparse.ArgumentParser(description='Motion detection preview')
-parser.add_argument("--src", metavar="FOLDER", default='.', help="Path to source videos")
-parser.add_argument("--detections", metavar="FOLDER", default='./out1', help="Path to folder with detection csv")
+if __name__ == "__main__":
 
-args = parser.parse_args()
+    parser = argparse.ArgumentParser(description='Motion detection preview', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("--src", metavar="FOLDER", default='.', help="Path to source videos")
+    parser.add_argument("--detections", metavar="FOLDER", default='out', help="Path to folder with detection csv")
 
-logging.basicConfig(level=logging.DEBUG)
+    args = parser.parse_args()
 
-csv_files = glob.glob(os.path.join(args.detections, "*.csv"))
+    logging.basicConfig(level=logging.DEBUG)
 
-bar_height, bar_width = 20, 1000
+    csv_files = glob.glob(os.path.join(args.detections, "*.csv"))
 
-layout = []
-for n, csv_file in enumerate(csv_files, start=0):
-    
-    csv_name = os.path.basename(csv_file)
+    bar_height, bar_width = 20, 1000
 
-    # parse video file 
-    video_name, _ = csv_name.split('.mp4')
-    video_file = os.path.abspath(os.path.join(args.src, f"{video_name}.mp4"))
-
-    probe = ffmpeg.probe(video_file)
-
-    # print("probe:", probe)
-    video_info = next(s for s in probe['streams'] if s['codec_type'] == 'video')
-    fps = int(video_info['r_frame_rate'].split('/')[0])
-    duration = float(video_info['duration'])
-
-    df = pd.read_csv(csv_file)
-
-    print("fps:", fps, "duration:", duration, "df_shape:", df.shape)
-
-    meta = {'file' : video_file, 'duration': duration, 'markup' : df}
-    text = f'File: {video_file}\nDuration: {ffplayer.duratioin_format(duration)}'
-
-    layout.append([sg.Text(text, key=f'-FILE_TEXT_{n}-')])
-    layout.append([sg.Graph((bar_width, bar_height), (0, bar_height), (bar_width, 0), change_submits=True, key=f'-MOTION_BAR_{n}-', enable_events=True, metadata=meta)])
-
-# Add scrollbar if more that 10 clips
-if len(csv_files) > 2:
-    layout = [[sg.Column(layout, scrollable=True,  vertical_scroll_only=True)]]
-
-window = sg.Window(f'Motion detection preview {args.src}', layout, return_keyboard_events=True).Finalize()
-
-for n in range(len(csv_files)):
-    el = window[f"-MOTION_BAR_{n}-"]
-    df = el.metadata['markup']
-
-    el.draw_image(data=get_img_data(create_bar(bar_width, bar_height, df), first=True), location=(0,0))
-
-# player
-player = ffplayer.FFPlayer()
-
-while True:  # Event Loop
-    event, values = window.read()
-    
-    if event and "MOTION_BAR" in event:
-        el = window[event]
-        bar_pos, _ = values[event]
-
-        ts = bar_pos / bar_width * el.metadata["duration"]
+    layout = []
+    for n, csv_file in enumerate(csv_files, start=0):
         
-        player.run_player(el.metadata["file"], ts)
+        csv_name = os.path.basename(csv_file)
 
-    if event in (sg.WIN_CLOSED, 'Exit'):
-        break
+        # parse video file 
+        video_name, _ = csv_name.split('.mp4')
+        video_file = os.path.abspath(os.path.join(args.src, f"{video_name}.mp4"))
+
+        probe = ffmpeg.probe(video_file)
+
+        # print("probe:", probe)
+        video_info = next(s for s in probe['streams'] if s['codec_type'] == 'video')
+        fps = int(video_info['r_frame_rate'].split('/')[0])
+        duration = float(video_info['duration'])
+
+        df = pd.read_csv(csv_file)
+
+        print("fps:", fps, "duration:", duration, "df_shape:", df.shape)
+
+        meta = {'file' : video_file, 'duration': duration, 'markup' : df}
+        text = f'File: {video_file}\nDuration: {ffplayer.duratioin_format(duration)}'
+
+        layout.append([sg.Text(text, key=f'-FILE_TEXT_{n}-')])
+        layout.append([sg.Graph((bar_width, bar_height), (0, bar_height), (bar_width, 0), change_submits=True, key=f'-MOTION_BAR_{n}-', enable_events=True, metadata=meta)])
+
+    # Add scrollbar if more that 10 clips
+    if len(csv_files) > 10:
+        layout = [[sg.Column(layout, scrollable=True,  vertical_scroll_only=True)]]
+
+    window = sg.Window(f'Motion detection preview {args.src}', layout, return_keyboard_events=True).Finalize()
+
+    for n in range(len(csv_files)):
+        el = window[f"-MOTION_BAR_{n}-"]
+        df = el.metadata['markup']
+
+        el.draw_image(data=get_img_data(create_bar(bar_width, bar_height, df), first=True), location=(0,0))
+
+    # player
+    player = ffplayer.FFPlayer()
+
+    while True:  # Event Loop
+        event, values = window.read()
+        
+        if event and "MOTION_BAR" in event:
+            el = window[event]
+            bar_pos, _ = values[event]
+
+            ts = bar_pos / bar_width * el.metadata["duration"]
+            
+            player.run_player(el.metadata["file"], ts)
+
+        if event in (sg.WIN_CLOSED, 'Exit'):
+            break

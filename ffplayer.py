@@ -1,7 +1,7 @@
 from multiprocessing import Process
 import os, sys
 import time
-import subprocess
+import threading
 
 test_video = "/home/er/workspace/md_filter/10.0.6.25_04_20220212124853446.mp4"
 
@@ -23,14 +23,19 @@ class FFPlayer():
         
     def __exit__(self, exc_type, exc_value, exc_traceback): 
         self.stop_player()
-
+    
     def player(self, file, seconds):
 
         t = duratioin_format(seconds)
 
         print (f"Play file {file} ID# {os.getpid()}")
-        cmd = f"ffplay -ss {t} {file}"
+
+        binary = "ffplay.exe" if sys.platform == "win32" else "ffplay"
         
+        cmd = f"{binary} -x 1280 -ss {t} {file}"
+
+        print("cmd: ", cmd)
+
         os.system(cmd)
 
         
@@ -38,7 +43,7 @@ class FFPlayer():
 
         self.stop_player()
 
-        self.child_proc = Process(target=self.player, args=(file, seconds)) 
+        self.child_proc = threading.Thread(target=self.player, args=(file, seconds,))
         self.child_proc.start()
         
     def stop_player(self):
@@ -49,7 +54,6 @@ class FFPlayer():
             else:
                 os.system("killall ffplay")
 
-            self.child_proc.terminate()
             self.child_proc.join()
             
             self.child_proc = None
