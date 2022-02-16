@@ -1,11 +1,20 @@
-# Motion detection utility
+# ROI Motion detection utility
 
 This is simple motion detection filter that allow to proccess video files and detect motion in provided ROI
 
 Process is split into two phases.
+
 Detection phases and navigation phase. 
+
 On the first stage 'motion_detection' utility detect ROI motions and save frame metrics into csv files.
-On the second stage 'motion_preview' utility allow to check all detections across proccessed files and make a video preview via 'fflay'
+
+On the second stage 'motion_preview' utility allow to check all detections across proccessed files and make a video preview via 'ffplay' by **clicking** on detection bars
+
+![Screenshot from 2022-02-16 05-02-38](https://user-images.githubusercontent.com/4415914/154182659-813a2d3c-49df-4bbc-8986-f6443fbaae0f.png)
+
+![Screenshot from 2022-02-16 04-58-21](https://user-images.githubusercontent.com/4415914/154181780-fd1b33a4-d932-4fa2-9076-ec92bca1e284.png)
+
+![Screenshot from 2022-02-16 04-54-53](https://user-images.githubusercontent.com/4415914/154181647-37c1a3fd-396f-4c0c-8bfc-1941554baf7a.png)
 
 ### Dependency
 
