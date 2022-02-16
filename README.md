@@ -26,3 +26,7 @@ cd <folder-with-video>
 Tested on 
    - Ubuntu 21.10 
    - Windows 10
+
+### Contacts
+
+poruchik_bI@gmail.com
