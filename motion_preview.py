@@ -14,10 +14,6 @@ import glob
 import ffmpeg
 import ffplayer
 
-test_video="/home/er/workspace/md_filter/10.0.6.25_04_20220212124853446.mp4"
-test_markup = "/home/er/workspace/md_filter/out/10.0.6.25_04_20220212124853446.mp4.[1690,0,220,220].csv"
-
-
 def get_img_data(img, first=False):
     
     if img.shape[0] > 960:

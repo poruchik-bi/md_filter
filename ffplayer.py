@@ -3,7 +3,7 @@ import os, sys
 import time
 import threading
 
-test_video = "/home/er/workspace/md_filter/10.0.6.25_04_20220212124853446.mp4"
+test_video = "input.mp4"
 
 def duratioin_format(seconds):
     seconds = int(seconds)
